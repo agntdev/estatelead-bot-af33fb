@@ -9,7 +9,7 @@ import {
   registerMainMenuItem,
 } from "../toolkit/index.js";
 
-registerMainMenuItem({ label: "Submit a lead", data: "lead:start", order: 10 });
+registerMainMenuItem({ label: "Submit request", data: "lead:start", order: 10 });
 
 const composer = new Composer<Ctx>();
 const PHONE_PROMPT = "What is the best phone number to reach you? By sharing it, you agree the agent may contact you about your inquiry.";
