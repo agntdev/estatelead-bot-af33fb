@@ -20,7 +20,8 @@ function detailKeyboard(lead: Lead) {
   ]);
 }
 
-async function inbox(ctx: Ctx, page: number, edit: boolean): Promise<void> {
+/** Render the private inbox for an already-authenticated owner. */
+export async function openLeadInbox(ctx: Ctx, page: number, edit: boolean): Promise<void> {
   const store = leadStore(ctx);
   if (!store) {
     await ctx.reply("Lead storage is not available yet.");
@@ -68,13 +69,13 @@ async function openLead(ctx: Ctx, id: string): Promise<void> {
 
 composer.command("admin", async (ctx) => {
   if (!(await requireOwner(ctx as unknown as OwnerAwareCtx))) return;
-  await inbox(ctx, 0, false);
+  await openLeadInbox(ctx, 0, false);
 });
 
 composer.callbackQuery(/^lead:(?:inbox|page:(?:prev|next)):(\d+)$/, async (ctx) => {
   if (!(await requireOwner(ctx as unknown as OwnerAwareCtx))) return;
   await ctx.answerCallbackQuery();
-  await inbox(ctx, Number(ctx.match[1]), true);
+  await openLeadInbox(ctx, Number(ctx.match[1]), true);
 });
 
 composer.callbackQuery(/^lead:view:([\w-]+)$/, async (ctx) => {

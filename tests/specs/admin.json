@@ -17,4 +17,20 @@
       }
     ]
   }
+  ,
+  {
+    "name": "View leads rejects a callback from a user without owner access",
+    "steps": [
+      {
+        "send": { "callback": "view_leads" },
+        "expect": [
+          { "method": "answerCallbackQuery" },
+          {
+            "method": "sendMessage",
+            "payload": { "text": "Owner access isn't set up yet." }
+          }
+        ]
+      }
+    ]
+  }
 ]
