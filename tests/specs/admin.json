@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Open the owner's private lead inbox"
+              "text": "Owner access isn't set up yet."
             }
           }
         ],

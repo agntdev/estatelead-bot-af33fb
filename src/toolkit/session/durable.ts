@@ -14,6 +14,7 @@
  */
 
 import type { StorageAdapter } from "grammy";
+import type { Lead, LeadStatus } from "../../leads.js";
 
 // Minimal shapes so this file type-checks without pulling @cloudflare/workers-types
 // into the Node build. The real bindings are provided by the Workers runtime.
@@ -152,6 +153,52 @@ export class ChatDO {
       await this.state.storage.put("reminders", list);
       await this.rearm(list);
       return new Response(null, { status: 204 });
+    }
+
+    // App-wide lead store. worker code addresses one dedicated instance named
+    // "real-estate-leads"; the explicit `lead:index` record makes listing O(n)
+    // in the number of leads, never an O(keyspace) scan.
+    if (url.pathname === "/leads" && request.method === "POST") {
+      const lead = (await request.json()) as Lead;
+      if (!lead.id) return Response.json({ error: "invalid lead" }, { status: 400 });
+      const ids = (await this.state.storage.get<string[]>("lead:index")) ?? [];
+      if (!ids.includes(lead.id)) ids.unshift(lead.id);
+      await this.state.storage.put({ [`lead:${lead.id}`]: lead, "lead:index": ids });
+      return Response.json({ value: null });
+    }
+
+    if (url.pathname === "/leads" && request.method === "GET") {
+      const ids = (await this.state.storage.get<string[]>("lead:index")) ?? [];
+      const leads: Lead[] = [];
+      for (const id of ids) {
+        const lead = await this.state.storage.get<Lead>(`lead:${id}`);
+        if (lead) leads.push(lead);
+      }
+      return Response.json({ value: leads });
+    }
+
+    const leadMatch = /^\/leads\/([^/]+)(?:\/(status))?$/.exec(url.pathname);
+    if (leadMatch) {
+      const id = decodeURIComponent(leadMatch[1]);
+      const key = `lead:${id}`;
+      const lead = await this.state.storage.get<Lead>(key);
+      if (request.method === "GET" && !leadMatch[2]) return Response.json({ value: lead ?? null });
+      if (request.method === "PUT" && leadMatch[2] === "status") {
+        const body = (await request.json()) as { status?: LeadStatus };
+        if (!lead || (body.status !== "New" && body.status !== "Done")) {
+          return Response.json({ value: null });
+        }
+        const updated = { ...lead, status: body.status };
+        await this.state.storage.put(key, updated);
+        return Response.json({ value: updated });
+      }
+      if (request.method === "DELETE" && !leadMatch[2]) {
+        if (!lead) return Response.json({ value: false });
+        const ids = (await this.state.storage.get<string[]>("lead:index")) ?? [];
+        await this.state.storage.put("lead:index", ids.filter((item) => item !== id));
+        await this.state.storage.delete(key);
+        return Response.json({ value: true });
+      }
     }
 
     return new Response("not found", { status: 404 });
