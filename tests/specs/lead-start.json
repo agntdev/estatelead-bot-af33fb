@@ -1,20 +1,51 @@
 [
   {
-    "name": "Submit a lead",
+    "name": "Submit a lead with a confirmation screen",
     "steps": [
       {
         "expect": [
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Begin the lead submission form flow"
+              "text": "What is your name?"
             }
           }
         ],
         "send": {
           "callback": "lead:start"
         }
+      },
+      {
+        "send": { "text": "Alex Morgan" },
+        "expect": [{ "method": "sendMessage", "payload": { "text": "What is the best phone number to reach you? By sharing it, you agree the agent may contact you about your inquiry." } }]
+      },
+      {
+        "send": { "text": "+1 212 555 0199" },
+        "expect": [{ "method": "sendMessage", "payload": { "text": "What can the agent help you with?" } }]
+      },
+      {
+        "send": { "callback": "lead:intent:Buying" },
+        "expect": [
+          { "method": "editMessageText", "payload": { "text": "Add a short note, or tap Skip note." } },
+          { "method": "sendMessage", "payload": { "text": "What details would you like to share?" } }
+        ]
+      },
+      {
+        "send": { "text": "Looking for a two-bedroom near downtown." },
+        "expect": [{ "method": "sendMessage", "payload": { "text": "Review your lead:\n\nName: Alex Morgan\nPhone: +1 212 555 0199\nInterest: Buying\nNote: Looking for a two-bedroom near downtown." } }]
+      },
+      {
+        "send": { "callback": "lead:submit" },
+        "expect": [{ "method": "sendMessage", "payload": { "text": "Lead storage is not available yet. Please try again shortly." } }]
       }
+    ]
+  },
+  {
+    "name": "Invalid phone stays in the lead form",
+    "steps": [
+      { "send": { "callback": "lead:start" }, "expect": [{ "method": "sendMessage", "payload": { "text": "What is your name?" } }] },
+      { "send": { "text": "Sam Lee" }, "expect": [{ "method": "sendMessage", "payload": { "text": "What is the best phone number to reach you? By sharing it, you agree the agent may contact you about your inquiry." } }] },
+      { "send": { "text": "not a phone" }, "expect": [{ "method": "sendMessage", "payload": { "text": "That phone number does not look valid. Enter it with at least seven digits." } }] }
     ]
   }
 ]

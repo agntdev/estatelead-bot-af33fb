@@ -8,7 +8,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "ℹ️ Tap /start to open the menu, then pick what you want from the buttons.\n\nEverything in this bot is reachable by tapping — you don't need to remember any commands."
+              "text": "Use Submit a lead to share your contact details and property needs.\n\nYou’ll review everything before it is sent. Use /start for the menu. The agent can use /admin for the lead inbox."
             }
           }
         ]
